@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PageTurner</title>
+    <style>
+        :root {
+            --color-white: rgba(255, 255, 255, 1);
+            --color-black: rgba(0, 0, 0, 1);
+            --color-green: rgba(34, 197, 94, 1);
+            --color-green-hover: rgba(22, 163, 74, 1);
+            --color-blue-dark: rgba(25, 55, 109, 1);
+            --color-blue-dark-hover: rgba(15, 40, 80, 1);
+            --radius-lg: 24px;
+            --space-16: 16px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            margin: 0;
+            padding: 0;
+            background-color: var(--color-black);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            overflow: hidden;
+        }
+
+        .container {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 100%;
+            padding: var(--space-16);
+            gap: var(--space-16);
+        }
+
+        .button-next {
+            flex: 0 0 67%;
+            background-color: var(--color-green);
+            color: var(--color-black);
+            border: none;
+            border-radius: var(--radius-lg);
+            font-size: 24px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 150ms cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .button-next:hover {
+            background-color: var(--color-green-hover);
+        }
+
+        .button-next:active {
+            transform: scale(0.98);
+        }
+
+        .button-prev {
+            flex: 0 0 20%;
+            background-color: var(--color-blue-dark);
+            color: var(--color-white);
+            border: none;
+            border-radius: var(--radius-lg);
+            font-size: 20px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 150ms cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .button-prev:hover {
+            background-color: var(--color-blue-dark-hover);
+        }
+
+        .button-prev:active {
+            transform: scale(0.98);
+        }
+
+        .button-config {
+            flex: 0 0 auto;
+            background-color: rgba(255, 255, 255, 0.1);
+            color: var(--color-white);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: var(--radius-lg);
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            padding: var(--space-16);
+            transition: background-color 150ms cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .button-config:hover {
+            background-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .button-config:active {
+            transform: scale(0.98);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <button class="button-next" id="nextBtn">Next page</button>
+        <button class="button-prev" id="prevBtn">Prev. page</button>
+        <button class="button-config" id="configBtn">Config IP</button>
+    </div>
+
+    <script>
+        const STORAGE_KEY = 'KOBOIP';
+
+        // Laad opgeslagen IP bij pagina load
+        function loadKoboIP() {
+            return localStorage.getItem(STORAGE_KEY) || '192.168.';
+        }
+
+        // Sla IP op
+        function saveKoboIP(ip) {
+            localStorage.setItem(STORAGE_KEY, ip);
+        }
+
+        // Get request naar Kobo
+        async function sendRequest(relativePath) {
+            const koboIP = localStorage.getItem(STORAGE_KEY);
+            if (!koboIP || koboIP === '192.168.') {
+                alert('Voer eerst een Kobo IP-adres in via Config IP');
+                return;
+            }
+
+            const url = `http://${koboIP}:8080${relativePath}`;
+            try {
+                const response = await fetch(url, { method: 'GET' });
+                if (!response.ok) {
+                    console.error('Request failed:', response.status);
+                }
+            } catch (error) {
+                console.error('Fout bij verbinding:', error);
+                alert('Kan geen verbinding maken met Kobo. Controleer het IP-adres.');
+            }
+        }
+
+        // Event listeners
+        document.getElementById('nextBtn').addEventListener('click', () => {
+            sendRequest('/koreader/event/GotoViewRel/1');
+        });
+
+        document.getElementById('prevBtn').addEventListener('click', () => {
+            sendRequest('/koreader/event/GotoViewRel/-1');
+        });
+
+        document.getElementById('configBtn').addEventListener('click', () => {
+            const currentIP = localStorage.getItem(STORAGE_KEY) || '192.168.';
+            const newIP = prompt('Voer Kobo IP-adres in:', currentIP);
+            
+            if (newIP !== null && newIP.trim() !== '') {
+                saveKoboIP(newIP.trim());
+                alert(`IP opgeslagen: ${newIP.trim()}`);
+            }
+        });
+
+        // Laad IP bij startup
+        const startupIP = loadKoboIP();
+        if (startupIP !== '192.168.') {
+            console.log('Kobo IP geladen:', startupIP);
+        }
+    </script>
+</body>
+</html>
