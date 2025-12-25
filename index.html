@@ -120,17 +120,14 @@
     <script>
         const STORAGE_KEY = 'KOBOIP';
 
-        // Laad opgeslagen IP bij pagina load
         function loadKoboIP() {
             return localStorage.getItem(STORAGE_KEY) || '192.168.';
         }
 
-        // Sla IP op
         function saveKoboIP(ip) {
             localStorage.setItem(STORAGE_KEY, ip);
         }
 
-        // Get request naar Kobo
         async function sendRequest(relativePath) {
             const koboIP = localStorage.getItem(STORAGE_KEY);
             if (!koboIP || koboIP === '192.168.') {
@@ -139,18 +136,9 @@
             }
 
             const url = `http://${koboIP}:8080${relativePath}`;
-            try {
-                const response = await fetch(url, { method: 'GET' });
-                if (!response.ok) {
-                    console.error('Request failed:', response.status);
-                }
-            } catch (error) {
-                console.error('Fout bij verbinding:', error);
-                alert('Kan geen verbinding maken met Kobo. Controleer het IP-adres.');
-            }
+            fetch(url, { method: 'GET', mode: 'no-cors' }).catch(err => console.log(err));
         }
 
-        // Event listeners
         document.getElementById('nextBtn').addEventListener('click', () => {
             sendRequest('/koreader/event/GotoViewRel/1');
         });
@@ -165,15 +153,10 @@
             
             if (newIP !== null && newIP.trim() !== '') {
                 saveKoboIP(newIP.trim());
-                alert(`IP opgeslagen: ${newIP.trim()}`);
             }
         });
 
-        // Laad IP bij startup
-        const startupIP = loadKoboIP();
-        if (startupIP !== '192.168.') {
-            console.log('Kobo IP geladen:', startupIP);
-        }
+        loadKoboIP();
     </script>
 </body>
 </html>
