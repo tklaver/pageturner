@@ -108,6 +108,35 @@
         .button-config:active {
             transform: scale(0.98);
         }
+
+        .toast {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: rgba(255, 255, 255, 0.95);
+            color: var(--color-black);
+            padding: 12px 20px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 500;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            z-index: 1000;
+            max-width: 90%;
+            word-break: break-all;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
     </style>
 </head>
 <body>
@@ -128,6 +157,18 @@
             localStorage.setItem(STORAGE_KEY, ip);
         }
 
+        function showToast(url) {
+            const existing = document.querySelector('.toast');
+            if (existing) existing.remove();
+
+            const toast = document.createElement('div');
+            toast.className = 'toast';
+            toast.textContent = url;
+            document.body.appendChild(toast);
+
+            setTimeout(() => toast.remove(), 2000);
+        }
+
         async function sendRequest(relativePath) {
             const koboIP = localStorage.getItem(STORAGE_KEY);
             if (!koboIP || koboIP === '192.168.') {
@@ -136,6 +177,7 @@
             }
 
             const url = `http://${koboIP}:8080${relativePath}`;
+            showToast(url);
             fetch(url, { method: 'GET', mode: 'no-cors' }).catch(err => console.log(err));
         }
 
